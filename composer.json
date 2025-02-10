@@ -1,0 +1,55 @@
+{
+    "name": "itsmurumba/laravel-otp",
+    "description": "Laravel Package for sending otps via SMS, Email, Slack",
+    "license": "MIT",
+    "keywords": [
+        "otp",
+        "slack",
+        "email",
+        "laravel",
+        "laravel 5",
+        "laravel 6",
+        "laravel 7",
+        "laravel 8",
+        "laravel 9",
+        "laravel 10",
+        "laravel 11"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Itsmurumba\\Otp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Itsmurumba\\Otp\\Tests\\": "tests"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kelvin Murumba",
+            "email": "kevmurumba@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1|^8.0|^8.1|^8.2",
+        "illuminate/support": "^5.0|^6.0|^7.0|^8.0|^9.0|^10.0|^11.0",
+        "guzzlehttp/guzzle": "^6.0|^7.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.6"
+    },
+    "scripts": {
+        "test": "vendor/bin/pest"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Itsmurumba\\Otp\\OtpServiceProvider"
+            ],
+            "aliases": {
+                "Mpesa": "Itsmurumba\\Otp\\Facades\\Otp"
+            }
+        }
+    }
+}
