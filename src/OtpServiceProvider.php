@@ -3,6 +3,7 @@
 namespace Itsmurumba\Otp;
 
 use Illuminate\Support\ServiceProvider;
+use Itsmurumba\Otp\Console\InstallOtpPackage;
 
 class OtpServiceProvider extends ServiceProvider
 {
@@ -19,7 +20,7 @@ class OtpServiceProvider extends ServiceProvider
             ], 'otp-config');
 
             $this->commands([
-                // InstallOtpPackage::class,
+                InstallOtpPackage::class,
             ]);
         }
     }
