@@ -4,6 +4,7 @@ namespace Itsmurumba\Otp;
 
 use Illuminate\Support\ServiceProvider;
 use Itsmurumba\Otp\Services\OtpService;
+use Itsmurumba\Otp\Channels\EmailChannel;
 use Itsmurumba\Otp\Console\InstallOtpPackage;
 
 class OtpServiceProvider extends ServiceProvider
@@ -18,6 +19,7 @@ class OtpServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 $config => config_path('otp.php'),
+                __DIR__.'/../resources/views' => resource_path('views/vendor/otp'),
             ], 'otp-config');
 
             $this->commands([
@@ -28,6 +30,8 @@ class OtpServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/otp.php', 'otp'
         );
+
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'otp');
     }
 
     /**
@@ -36,7 +40,9 @@ class OtpServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('otp', function ($app) {
-            return new OtpService();
+            $service = new OtpService();
+            $service->registerChannel(new EmailChannel());
+            return $service;
         });
     }
 
