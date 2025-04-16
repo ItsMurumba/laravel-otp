@@ -8,6 +8,7 @@ use Itsmurumba\Otp\Generators\NumericGenerator;
 use Itsmurumba\Otp\Channels\SmsChannel;
 use Itsmurumba\Otp\Models\Otp;
 use Itsmurumba\Otp\Exceptions\InvalidChannelException;
+use Itsmurumba\Otp\Exceptions\RateLimitExceededException;
 use Carbon\Carbon;
 
 class OtpService
@@ -33,13 +34,20 @@ class OtpService
     protected $expiresIn = 5; // minutes
 
     /**
+     * @var RateLimiter
+     */
+    protected $rateLimiter;
+
+    /**
      * Create a new OTP service instance
      *
      * @param GeneratorInterface|null $generator
+     * @param RateLimiter|null $rateLimiter
      */
-    public function __construct(?GeneratorInterface $generator = null)
+    public function __construct(?GeneratorInterface $generator = null, ?RateLimiter $rateLimiter = null)
     {
         $this->generator = $generator ?? new NumericGenerator();
+        $this->rateLimiter = $rateLimiter ?? new RateLimiter();
         $this->registerDefaultChannels();
     }
 
@@ -89,6 +97,20 @@ class OtpService
     }
 
     /**
+     * Set rate limiting parameters
+     *
+     * @param int $maxAttempts
+     * @param int $decayMinutes
+     * @return self
+     */
+    public function rateLimit(int $maxAttempts, int $decayMinutes): self
+    {
+        $this->rateLimiter->maxAttempts($maxAttempts)
+            ->decayMinutes($decayMinutes);
+        return $this;
+    }
+
+    /**
      * Generate and send OTP
      *
      * @param string $recipient
@@ -96,9 +118,17 @@ class OtpService
      * @param array $data
      * @return string
      * @throws InvalidChannelException
+     * @throws RateLimitExceededException
      */
     public function generateAndSend(string $recipient, $channels = 'sms', array $data = []): string
     {
+        if ($this->rateLimiter->tooManyAttempts($recipient)) {
+            throw new RateLimitExceededException(
+                "Too many OTP attempts. Please try again later.",
+                $this->rateLimiter->remaining($recipient)
+            );
+        }
+
         // Generate OTP
         $otp = $this->generator->generate($this->length);
         
@@ -120,6 +150,9 @@ class OtpService
             
             $this->channels[$channel]->send($recipient, $otp, $data);
         }
+
+        // Increment rate limit counter
+        $this->rateLimiter->hit($recipient);
         
         return $otp;
     }
@@ -141,6 +174,9 @@ class OtpService
         if (!$otpRecord) {
             return false;
         }
+
+        // Reset rate limit on successful verification
+        $this->rateLimiter->reset($identifier);
 
         return $otpRecord->markAsVerified();
     }
