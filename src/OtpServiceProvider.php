@@ -22,6 +22,10 @@ class OtpServiceProvider extends ServiceProvider
                 __DIR__.'/../resources/views' => resource_path('views/vendor/otp'),
             ], 'otp-config');
 
+            $this->publishes([
+                __DIR__.'/../database/migrations' => database_path('migrations'),
+            ], 'otp-migrations');
+
             $this->commands([
                 InstallOtpPackage::class,
             ]);

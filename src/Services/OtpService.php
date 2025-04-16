@@ -6,7 +6,9 @@ use Itsmurumba\Otp\Contracts\ChannelInterface;
 use Itsmurumba\Otp\Contracts\GeneratorInterface;
 use Itsmurumba\Otp\Generators\NumericGenerator;
 use Itsmurumba\Otp\Channels\SmsChannel;
+use Itsmurumba\Otp\Models\Otp;
 use Itsmurumba\Otp\Exceptions\InvalidChannelException;
+use Carbon\Carbon;
 
 class OtpService
 {
@@ -97,8 +99,18 @@ class OtpService
      */
     public function generateAndSend(string $recipient, $channels = 'sms', array $data = []): string
     {
+        // Generate OTP
         $otp = $this->generator->generate($this->length);
         
+        // Store in database
+        $otpRecord = Otp::create([
+            'identifier' => $recipient,
+            'code' => $otp,
+            'channel' => is_array($channels) ? implode(',', $channels) : $channels,
+            'expires_at' => Carbon::now()->addMinutes($this->expiresIn),
+        ]);
+        
+        // Send via channels
         $channels = is_array($channels) ? $channels : [$channels];
         
         foreach ($channels as $channel) {
@@ -115,11 +127,33 @@ class OtpService
     /**
      * Verify an OTP
      *
+     * @param string $identifier
      * @param string $otp
      * @return bool
      */
-    public function verify(string $otp): bool
+    public function verify(string $identifier, string $otp): bool
     {
-        return $this->generator->validate($otp);
+        $otpRecord = Otp::forIdentifier($identifier)
+            ->valid()
+            ->where('code', $otp)
+            ->first();
+
+        if (!$otpRecord) {
+            return false;
+        }
+
+        return $otpRecord->markAsVerified();
+    }
+
+    /**
+     * Clean up expired OTPs
+     *
+     * @return int Number of deleted records
+     */
+    public function cleanup(): int
+    {
+        return Otp::where('expires_at', '<', now())
+            ->orWhere('verified', true)
+            ->delete();
     }
 } 
