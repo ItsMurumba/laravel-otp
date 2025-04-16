@@ -3,6 +3,7 @@
 namespace Itsmurumba\Otp;
 
 use Illuminate\Support\ServiceProvider;
+use Itsmurumba\Otp\Services\OtpService;
 use Itsmurumba\Otp\Console\InstallOtpPackage;
 
 class OtpServiceProvider extends ServiceProvider
@@ -23,6 +24,10 @@ class OtpServiceProvider extends ServiceProvider
                 InstallOtpPackage::class,
             ]);
         }
+
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/otp.php', 'otp'
+        );
     }
 
     /**
@@ -30,9 +35,8 @@ class OtpServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('laravel-otp', function () {
-
-            return new Otp();
+        $this->app->singleton('otp', function ($app) {
+            return new OtpService();
         });
     }
 
@@ -43,7 +47,6 @@ class OtpServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-
-        return ['laravel-otp'];
+        return ['otp'];
     }
 }
