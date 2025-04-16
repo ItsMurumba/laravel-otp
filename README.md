@@ -30,116 +30,40 @@ After installation, publish the configuration file:
 php artisan vendor:publish --provider="Itsmurumba\Otp\OtpServiceProvider"
 ```
 
-## Environment Variables
-
-The following environment variables need to be configured in your `.env` file:
-
-### OTP General Configuration
-
-```env
-# Default channel for sending OTP (email, sms, whatsapp, telegram, slack)
-OTP_DEFAULT_CHANNEL=email
-
-# OTP length (number of characters)
-OTP_LENGTH=6
-
-# OTP expiration time in minutes
-OTP_EXPIRES_IN=10
-
-# OTP type (numeric or alphanumeric)
-OTP_TYPE=numeric
-```
-
-### Email Configuration
-
-```env
-# Laravel mail settings
-MAIL_MAILER=smtp
-MAIL_HOST=your-smtp-host
-MAIL_PORT=587
-MAIL_USERNAME=your-username
-MAIL_PASSWORD=your-password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=from@example.com
-MAIL_FROM_NAME="${APP_NAME}"
-```
-
-### SMS Configuration
-
-```env
-# SMS API credentials
-SMS_API_KEY=your-api-key
-SMS_API_URL=https://your-sms-provider.com/api
-```
-
-### WhatsApp Configuration
-
-```env
-# WhatsApp Business API credentials
-WHATSAPP_API_KEY=your-api-key
-WHATSAPP_API_URL=https://your-whatsapp-provider.com/api
-```
-
-### Telegram Configuration
-
-```env
-# Telegram Bot Token
-TELEGRAM_BOT_TOKEN=your-bot-token
-```
-
-### Slack Configuration
-
-```env
-# Slack Webhook URL
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/your-webhook-url
-```
-
 ## Configuration
 
-The package configuration file will be published at `config/otp.php`. Here you can configure:
+Copy the required environment variables from `.env.example` to your `.env` file and configure them according to your needs:
 
-```php
-return [
-    // Default channel for sending OTP
-    'default_channel' => env('OTP_DEFAULT_CHANNEL', 'email'),
-
-    // OTP length
-    'length' => env('OTP_LENGTH', 6),
-
-    // OTP expiration time in minutes
-    'expires_in' => env('OTP_EXPIRES_IN', 10),
-
-    // OTP type (numeric or alphanumeric)
-    'type' => env('OTP_TYPE', 'numeric'),
-
-    // Channel configurations
-    'channels' => [
-        'email' => [
-            'enabled' => true,
-            'from' => env('MAIL_FROM_ADDRESS'),
-            'name' => env('MAIL_FROM_NAME'),
-        ],
-        'sms' => [
-            'enabled' => true,
-            'api_key' => env('SMS_API_KEY'),
-            'api_url' => env('SMS_API_URL'),
-        ],
-        'whatsapp' => [
-            'enabled' => true,
-            'api_key' => env('WHATSAPP_API_KEY'),
-            'api_url' => env('WHATSAPP_API_URL'),
-        ],
-        'telegram' => [
-            'enabled' => true,
-            'bot_token' => env('TELEGRAM_BOT_TOKEN'),
-        ],
-        'slack' => [
-            'enabled' => true,
-            'webhook_url' => env('SLACK_WEBHOOK_URL'),
-        ],
-    ],
-];
+```bash
+cp .env.example .env
 ```
+
+The package supports the following channels, each requiring specific configurations:
+
+#### Email
+
+- Requires Laravel mail settings
+- Uses standard Laravel mail configuration
+
+#### SMS
+
+- Requires SMS API credentials
+- Configure `SMS_API_KEY` and `SMS_API_URL`
+
+#### WhatsApp
+
+- Requires WhatsApp Business API credentials
+- Configure `WHATSAPP_API_KEY` and `WHATSAPP_API_URL`
+
+#### Telegram
+
+- Requires Telegram Bot Token
+- Configure `TELEGRAM_BOT_TOKEN`
+
+#### Slack
+
+- Requires Slack Webhook URL
+- Configure `SLACK_WEBHOOK_URL`
 
 ## Usage
 
@@ -222,57 +146,6 @@ $otpService->via('sms')->generateAndSend('+1234567890');
 ```php
 $otpService = new OtpService();
 $isValid = $otpService->validate('123456', 'stored_otp', $expirationTimestamp);
-```
-
-## Channel-Specific Requirements
-
-### Email
-
-- Configured Laravel mail settings in `.env`
-
-```env
-MAIL_MAILER=smtp
-MAIL_HOST=your-smtp-host
-MAIL_PORT=587
-MAIL_USERNAME=your-username
-MAIL_PASSWORD=your-password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=from@example.com
-MAIL_FROM_NAME="${APP_NAME}"
-```
-
-### SMS
-
-- Valid SMS API credentials
-
-```env
-SMS_API_KEY=your-api-key
-SMS_API_URL=https://your-sms-provider.com/api
-```
-
-### WhatsApp
-
-- Valid WhatsApp Business API credentials
-
-```env
-WHATSAPP_API_KEY=your-api-key
-WHATSAPP_API_URL=https://your-whatsapp-provider.com/api
-```
-
-### Telegram
-
-- Valid Telegram Bot Token
-
-```env
-TELEGRAM_BOT_TOKEN=your-bot-token
-```
-
-### Slack
-
-- Valid Slack Webhook URL
-
-```env
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/your-webhook-url
 ```
 
 ## Testing
