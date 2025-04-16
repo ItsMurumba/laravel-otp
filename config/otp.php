@@ -67,5 +67,11 @@ return [
             'default_channel' => env('SLACK_DEFAULT_CHANNEL'),
             'message' => 'Your OTP code is: {otp}',
         ],
+        'whatsapp' => [
+            'driver' => 'whatsapp',
+            'api_key' => env('WHATSAPP_API_KEY'),
+            'api_url' => env('WHATSAPP_API_URL'),
+            'message' => 'Your OTP code is: {otp}',
+        ],
     ],
 ]; 

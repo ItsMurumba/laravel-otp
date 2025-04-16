@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Itsmurumba\Otp\Services\OtpService;
 use Itsmurumba\Otp\Channels\EmailChannel;
 use Itsmurumba\Otp\Channels\SlackChannel;
+use Itsmurumba\Otp\Channels\WhatsAppChannel;
 use Itsmurumba\Otp\Console\InstallOtpPackage;
 
 class OtpServiceProvider extends ServiceProvider
@@ -48,6 +49,7 @@ class OtpServiceProvider extends ServiceProvider
             $service = new OtpService();
             $service->registerChannel(new EmailChannel());
             $service->registerChannel(new SlackChannel());
+            $service->registerChannel(new WhatsAppChannel());
             return $service;
         });
     }
