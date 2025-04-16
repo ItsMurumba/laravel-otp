@@ -5,6 +5,7 @@ namespace Itsmurumba\Otp;
 use Illuminate\Support\ServiceProvider;
 use Itsmurumba\Otp\Services\OtpService;
 use Itsmurumba\Otp\Channels\EmailChannel;
+use Itsmurumba\Otp\Channels\SlackChannel;
 use Itsmurumba\Otp\Console\InstallOtpPackage;
 
 class OtpServiceProvider extends ServiceProvider
@@ -46,6 +47,7 @@ class OtpServiceProvider extends ServiceProvider
         $this->app->singleton('otp', function ($app) {
             $service = new OtpService();
             $service->registerChannel(new EmailChannel());
+            $service->registerChannel(new SlackChannel());
             return $service;
         });
     }

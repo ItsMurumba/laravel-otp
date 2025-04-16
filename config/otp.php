@@ -33,6 +33,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Rate Limiting
+    |--------------------------------------------------------------------------
+    |
+    | Configure rate limiting for OTP requests.
+    |
+    */
+    'rate_limit' => [
+        'max_attempts' => 3,
+        'decay_minutes' => 15,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Channel Configurations
     |--------------------------------------------------------------------------
     |
@@ -50,7 +63,9 @@ return [
         ],
         'slack' => [
             'driver' => 'slack',
-            // Add your Slack configuration here
+            'webhook_url' => env('SLACK_WEBHOOK_URL'),
+            'default_channel' => env('SLACK_DEFAULT_CHANNEL'),
+            'message' => 'Your OTP code is: {otp}',
         ],
     ],
 ]; 
