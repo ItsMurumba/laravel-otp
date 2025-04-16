@@ -7,6 +7,8 @@ use Itsmurumba\Otp\Services\OtpService;
 use Itsmurumba\Otp\Channels\EmailChannel;
 use Itsmurumba\Otp\Channels\SlackChannel;
 use Itsmurumba\Otp\Channels\WhatsAppChannel;
+use Itsmurumba\Otp\Generators\NumericGenerator;
+use Itsmurumba\Otp\Generators\AlphanumericGenerator;
 use Itsmurumba\Otp\Console\InstallOtpPackage;
 
 class OtpServiceProvider extends ServiceProvider
@@ -46,7 +48,12 @@ class OtpServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('otp', function ($app) {
-            $service = new OtpService();
+            $generator = match (config('otp.generator')) {
+                'alphanumeric' => new AlphanumericGenerator(),
+                default => new NumericGenerator(),
+            };
+
+            $service = new OtpService($generator);
             $service->registerChannel(new EmailChannel());
             $service->registerChannel(new SlackChannel());
             $service->registerChannel(new WhatsAppChannel());
