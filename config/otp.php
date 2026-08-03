@@ -84,5 +84,10 @@ return [
             'api_url' => env('WHATSAPP_API_URL'),
             'message' => 'Your OTP code is: {otp}',
         ],
+        'telegram' => [
+            'driver' => 'telegram',
+            'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+            'message' => 'Your OTP code is: {otp}',
+        ],
     ],
 ]; 

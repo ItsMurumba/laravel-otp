@@ -24,7 +24,7 @@ test('it sends OTP via WhatsApp', function () {
         return $request->url() === 'https://api.whatsapp.com/send' &&
                $request['to'] === $recipient &&
                str_contains($request['message'], $otp) &&
-               $request['api_key'] === 'test-api-key';
+               $request->hasHeader('Authorization', 'Bearer test-api-key');
     });
 });
 

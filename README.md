@@ -14,7 +14,7 @@ A flexible and feature-rich Laravel package for generating and sending One-Time 
 ## Requirements
 
 - PHP 8.1 or higher
-- Laravel 10.0 or higher
+- Laravel 10, 11, 12, or 13 (CI is tested against 12 and 13)
 
 ## Installation
 
@@ -70,19 +70,26 @@ The package supports the following channels, each requiring specific configurati
 ### Basic Usage
 
 ```php
-use Itsmurumba\Otp\Services\OtpService;
+use Itsmurumba\Otp\Facades\Otp;
 
-// Create an instance of OtpService
-$otpService = new OtpService();
+// Generate and send an OTP (defaults to the "sms" channel)
+$otp = Otp::generateAndSend('recipient@example.com', 'email');
 
-// Generate and send OTP
-$result = $otpService->generateAndSend('recipient@example.com');
+// Verify an OTP
+$isValid = Otp::verify('recipient@example.com', $otp);
+```
 
-if ($result) {
-    $otp = $result['otp'];
-    $expiresAt = $result['expires_at'];
-    // Store or handle the OTP as needed
-}
+You can also resolve the underlying service directly instead of the facade (via the `otp()` helper or the `otp` container binding):
+
+```php
+$otpService = otp(); // same as app('otp')
+
+$otp = $otpService->length(6)
+    ->expiresIn(10)
+    ->rateLimit(3, 15)
+    ->generateAndSend('recipient@example.com', 'email');
+
+$isValid = $otpService->verify('recipient@example.com', $otp);
 ```
 
 ### Channel-Specific Usage
@@ -132,26 +139,32 @@ $channel = new SlackChannel();
 $result = $channel->send('#channel-name', '123456');
 ```
 
-### Custom Channel Configuration
+### Sending via Multiple Channels
 
-You can specify a different channel at runtime:
-
-```php
-$otpService = new OtpService();
-$otpService->via('sms')->generateAndSend('+1234567890');
-```
-
-### OTP Validation
+Pass an array of channel names to send the same OTP through more than one channel:
 
 ```php
-$otpService = new OtpService();
-$isValid = $otpService->validate('123456', 'stored_otp', $expirationTimestamp);
+$otp = $otpService->generateAndSend('+1234567890', ['sms', 'whatsapp']);
 ```
+
+### OTP Verification
+
+```php
+$isValid = $otpService->verify('+1234567890', $otp);
+```
+
+`verify()` checks the code against the stored, non-expired, unverified OTP for that identifier and marks it as verified on success.
 
 ## Testing
 
 ```bash
 composer test
+```
+
+To run the test suite with code coverage (requires Xdebug or PCOV):
+
+```bash
+composer test:coverage
 ```
 
 ## Security
