@@ -3,7 +3,9 @@
 namespace Itsmurumba\Otp\Channels;
 
 use Itsmurumba\Otp\Contracts\ChannelInterface;
+use Itsmurumba\Otp\Mail\OtpMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class EmailChannel implements ChannelInterface
 {
@@ -18,18 +20,11 @@ class EmailChannel implements ChannelInterface
     public function send(string $recipient, string $otp, array $data = []): bool
     {
         try {
-            Mail::send('otp::email', [
-                'otp' => $otp,
-                'data' => $data,
-            ], function ($message) use ($recipient, $data) {
-                $message->to($recipient)
-                    ->subject($data['subject'] ?? 'Your OTP Code');
-            });
+            Mail::to($recipient)->send(new OtpMail($otp, $data));
 
             return true;
         } catch (\Exception $e) {
-            // Log the error
-            \Log::error('Failed to send OTP email: ' . $e->getMessage());
+            Log::error('Failed to send OTP email: ' . $e->getMessage());
             return false;
         }
     }

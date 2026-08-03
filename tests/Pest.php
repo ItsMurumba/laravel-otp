@@ -11,7 +11,7 @@
 |
 */
 
-// pest()->extend(Tests\TestCase::class)->in('Feature');
+uses(Itsmurumba\Otp\Tests\TestCase::class)->in(__DIR__);
 
 /*
 |--------------------------------------------------------------------------

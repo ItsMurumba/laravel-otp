@@ -6,12 +6,12 @@ use Itsmurumba\Otp\Contracts\ChannelInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class SmsChannel implements ChannelInterface
+class TelegramChannel implements ChannelInterface
 {
     /**
-     * Send the OTP via SMS
+     * Send the OTP via Telegram
      *
-     * @param string $recipient
+     * @param string $recipient Telegram chat ID
      * @param string $otp
      * @param array $data
      * @return bool
@@ -19,24 +19,22 @@ class SmsChannel implements ChannelInterface
     public function send(string $recipient, string $otp, array $data = []): bool
     {
         try {
-            $apiKey = config('otp.channels.sms.api_key');
-            $apiUrl = config('otp.channels.sms.api_url');
+            $botToken = config('otp.channels.telegram.bot_token');
 
-            if (empty($apiKey) || empty($apiUrl)) {
-                throw new \RuntimeException('SMS API credentials are not configured');
+            if (empty($botToken)) {
+                throw new \RuntimeException('Telegram bot token is not configured');
             }
 
             $message = $data['message'] ?? "Your OTP code is: {$otp}";
             $message = str_replace('{otp}', $otp, $message);
 
-            $response = Http::post($apiUrl, [
-                'to' => $recipient,
-                'message' => $message,
-                'api_key' => $apiKey,
+            $response = Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                'chat_id' => $recipient,
+                'text' => $message,
             ]);
 
             if (!$response->successful()) {
-                Log::error('Failed to send SMS OTP', [
+                Log::error('Failed to send Telegram OTP', [
                     'response' => $response->json(),
                     'status' => $response->status(),
                 ]);
@@ -45,7 +43,7 @@ class SmsChannel implements ChannelInterface
 
             return true;
         } catch (\Exception $e) {
-            Log::error('Failed to send OTP via SMS: ' . $e->getMessage());
+            Log::error('Failed to send OTP to Telegram: ' . $e->getMessage());
             return false;
         }
     }
@@ -57,6 +55,6 @@ class SmsChannel implements ChannelInterface
      */
     public function getName(): string
     {
-        return 'sms';
+        return 'telegram';
     }
-} 
+}
