@@ -66,7 +66,8 @@ return [
     'channels' => [
         'sms' => [
             'driver' => 'sms',
-            // Add your SMS provider configuration here
+            'api_key' => env('SMS_API_KEY'),
+            'api_url' => env('SMS_API_URL'),
         ],
         'email' => [
             'driver' => 'email',
@@ -75,7 +76,6 @@ return [
         'slack' => [
             'driver' => 'slack',
             'webhook_url' => env('SLACK_WEBHOOK_URL'),
-            'default_channel' => env('SLACK_DEFAULT_CHANNEL'),
             'message' => 'Your OTP code is: {otp}',
         ],
         'whatsapp' => [
