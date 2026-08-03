@@ -7,6 +7,7 @@ use Itsmurumba\Otp\Services\OtpService;
 use Itsmurumba\Otp\Channels\EmailChannel;
 use Itsmurumba\Otp\Channels\SlackChannel;
 use Itsmurumba\Otp\Channels\WhatsAppChannel;
+use Itsmurumba\Otp\Channels\TelegramChannel;
 use Itsmurumba\Otp\Generators\NumericGenerator;
 use Itsmurumba\Otp\Generators\AlphanumericGenerator;
 use Itsmurumba\Otp\Console\InstallOtpPackage;
@@ -18,16 +19,17 @@ class OtpServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $config = realpath(__DIR__.'/../resources/config/otp.php');
-
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                $config => config_path('otp.php'),
-                __DIR__.'/../resources/views' => resource_path('views/vendor/otp'),
+                __DIR__.'/../config/otp.php' => config_path('otp.php'),
             ], 'otp-config');
 
             $this->publishes([
-                __DIR__.'/../database/migrations' => database_path('migrations'),
+                __DIR__.'/../resources/views' => resource_path('views/vendor/otp'),
+            ], 'otp-views');
+
+            $this->publishes([
+                __DIR__.'/database/migrations' => database_path('migrations'),
             ], 'otp-migrations');
 
             $this->commands([
@@ -40,6 +42,8 @@ class OtpServiceProvider extends ServiceProvider
         );
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'otp');
+
+        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
     }
 
     /**
@@ -57,6 +61,7 @@ class OtpServiceProvider extends ServiceProvider
             $service->registerChannel(new EmailChannel());
             $service->registerChannel(new SlackChannel());
             $service->registerChannel(new WhatsAppChannel());
+            $service->registerChannel(new TelegramChannel());
             return $service;
         });
     }

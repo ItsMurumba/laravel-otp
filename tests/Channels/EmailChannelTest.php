@@ -1,6 +1,7 @@
 <?php
 
 use Itsmurumba\Otp\Channels\EmailChannel;
+use Itsmurumba\Otp\Mail\OtpMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
 
@@ -15,7 +16,7 @@ test('it sends OTP via email', function () {
     
     expect($result)->toBeTrue();
     
-    Mail::assertSent(function ($mail) use ($recipient, $otp) {
+    Mail::assertSent(function (OtpMail $mail) use ($recipient, $otp) {
         return $mail->hasTo($recipient) &&
                str_contains($mail->render(), $otp);
     });

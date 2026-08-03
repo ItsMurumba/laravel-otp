@@ -28,6 +28,6 @@ class NumericGenerator implements GeneratorInterface
      */
     public function validate(string $otp): bool
     {
-        return ctype_digit($otp);
+        return ctype_digit($otp) && strlen($otp) >= 6;
     }
 } 

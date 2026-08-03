@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static \Itsmurumba\Otp\Services\OtpService length(int $length)
  * @method static \Itsmurumba\Otp\Services\OtpService expiresIn(int $minutes)
+ * @method static \Itsmurumba\Otp\Services\OtpService rateLimit(int $maxAttempts, int $decayMinutes)
  * @method static string generateAndSend(string $recipient, $channels = 'sms', array $data = [])
- * @method static bool verify(string $otp)
+ * @method static bool verify(string $identifier, string $otp)
  * 
  * @see \Itsmurumba\Otp\Services\OtpService
  */
