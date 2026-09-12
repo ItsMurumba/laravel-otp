@@ -14,7 +14,7 @@ A flexible and feature-rich Laravel package for generating and sending One-Time 
 ## Requirements
 
 - PHP 8.1 or higher
-- Laravel 10, 11, 12, or 13 (CI is tested against 12 and 13)
+- Laravel 10, 11, 12, or 13 (CI is tested against all four)
 
 ## Installation
 
@@ -37,6 +37,12 @@ Copy the required environment variables from `.env.example` to your `.env` file 
 ```bash
 cp .env.example .env
 ```
+
+#### General
+
+- `OTP_LENGTH` — length of generated codes (default: `6`)
+- `OTP_EXPIRES_IN` — expiration time in minutes (default: `5`)
+- `OTP_GENERATOR` — `numeric` or `alphanumeric` (default: `numeric`)
 
 The package supports the following channels, each requiring specific configurations:
 
@@ -72,7 +78,7 @@ The package supports the following channels, each requiring specific configurati
 ```php
 use Itsmurumba\Otp\Facades\Otp;
 
-// Generate and send an OTP (defaults to the "sms" channel)
+// Generate and send an OTP (defaults to config('otp.default_channels'), "sms" out of the box)
 $otp = Otp::generateAndSend('recipient@example.com', 'email');
 
 // Verify an OTP
@@ -153,7 +159,7 @@ $otp = $otpService->generateAndSend('+1234567890', ['sms', 'whatsapp']);
 $isValid = $otpService->verify('+1234567890', $otp);
 ```
 
-`verify()` checks the code against the stored, non-expired, unverified OTP for that identifier and marks it as verified on success.
+`verify()` checks the code against the stored, non-expired, unverified OTP for that identifier and marks it as verified on success. Verification attempts are rate-limited independently from generation (same `rateLimit()`/`rate_limit` config), throwing `RateLimitExceededException` once the limit is hit — this stops brute-forcing a code before it expires.
 
 ## Testing
 
@@ -168,6 +174,8 @@ composer test:coverage
 ```
 
 ## Security
+
+OTP codes are hashed (SHA-256) before being stored, so a database read or leaked backup doesn't expose usable codes. Generated codes are only ever returned to your application in plaintext, to send via a channel.
 
 If you discover any security-related issues, please email kevmurumba@gmail.com instead of using the issue tracker.
 

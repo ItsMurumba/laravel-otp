@@ -9,7 +9,7 @@ return [
     | This value determines the default length of generated OTPs.
     |
     */
-    'length' => 6,
+    'length' => env('OTP_LENGTH', 6),
 
     /*
     |--------------------------------------------------------------------------
@@ -19,7 +19,7 @@ return [
     | This value determines the default expiration time of OTPs in minutes.
     |
     */
-    'expires_in' => 5,
+    'expires_in' => env('OTP_EXPIRES_IN', 5),
 
     /*
     |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ return [
     | Options: numeric, alphanumeric
     |
     */
-    'generator' => 'numeric',
+    'generator' => env('OTP_GENERATOR', 'numeric'),
 
     /*
     |--------------------------------------------------------------------------

@@ -17,6 +17,14 @@ test('it validates numeric OTPs correctly', function () {
     
     expect($generator->validate('123456'))->toBeTrue();
     expect($generator->validate('12345'))->toBeFalse(); // Too short
+    expect($generator->validate('1234567'))->toBeFalse(); // Too long
     expect($generator->validate('12345a'))->toBeFalse(); // Contains non-numeric
     expect($generator->validate(''))->toBeFalse(); // Empty
+});
+
+test('it validates against an explicit expected length', function () {
+    $generator = new NumericGenerator();
+
+    expect($generator->validate('1234', 4))->toBeTrue();
+    expect($generator->validate('123456', 4))->toBeFalse();
 }); 

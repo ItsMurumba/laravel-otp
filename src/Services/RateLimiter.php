@@ -23,6 +23,16 @@ class RateLimiter
     protected $decayMinutes = 15;
 
     /**
+     * Create a new rate limiter instance
+     *
+     * @param string $prefix Cache key prefix, so separate limiters (e.g. generate vs verify) don't share a bucket
+     */
+    public function __construct(string $prefix = 'otp:rate-limit:')
+    {
+        $this->prefix = $prefix;
+    }
+
+    /**
      * Check if the identifier has exceeded the rate limit
      *
      * @param string $identifier

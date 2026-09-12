@@ -16,7 +16,8 @@ interface GeneratorInterface
      * Validate if the OTP is valid
      *
      * @param string $otp
+     * @param int $length
      * @return bool
      */
-    public function validate(string $otp): bool;
+    public function validate(string $otp, int $length = 6): bool;
 } 
