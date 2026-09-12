@@ -17,7 +17,7 @@ test('it generates and sends an OTP via the default sms channel', function () {
     expect($otp)->toBeString()->toHaveLength(6);
     $this->assertDatabaseHas('otps', [
         'identifier' => $recipient,
-        'code' => $otp,
+        'code' => hash('sha256', $otp),
         'channel' => 'sms',
     ]);
 });
@@ -50,7 +50,7 @@ test('it verifies a valid otp and marks it as verified', function () {
     expect($service->verify($recipient, $otp))->toBeTrue();
     $this->assertDatabaseHas('otps', [
         'identifier' => $recipient,
-        'code' => $otp,
+        'code' => hash('sha256', $otp),
         'verified' => true,
     ]);
 });
@@ -74,6 +74,49 @@ test('it enforces rate limiting', function () {
 
     $service->generateAndSend($recipient);
 })->throws(RateLimitExceededException::class);
+
+test('it rate limits verification attempts independently from generation', function () {
+    $service = new OtpService();
+    $service->rateLimit(2, 15);
+    $recipient = '+1234567890';
+
+    $otp = $service->generateAndSend($recipient);
+
+    expect($service->verify($recipient, 'wrong-1'))->toBeFalse();
+    expect($service->verify($recipient, 'wrong-2'))->toBeFalse();
+
+    expect(fn () => $service->verify($recipient, $otp))
+        ->toThrow(RateLimitExceededException::class);
+});
+
+test('it resolves a container instance wired from config', function () {
+    config([
+        'otp.length' => 4,
+        'otp.expires_in' => 1,
+        'otp.rate_limit' => ['max_attempts' => 1, 'decay_minutes' => 15],
+    ]);
+
+    $service = $this->app->make('otp');
+    $recipient = '+1234567890';
+
+    $otp = $service->generateAndSend($recipient);
+    expect($otp)->toHaveLength(4);
+
+    expect(fn () => $service->generateAndSend($recipient))
+        ->toThrow(RateLimitExceededException::class);
+});
+
+test('it falls back to the configured default channel when none is given', function () {
+    Mail::fake();
+    config(['otp.default_channels' => 'email']);
+
+    $service = $this->app->make('otp');
+    $recipient = 'test@example.com';
+
+    $service->generateAndSend($recipient);
+
+    Mail::assertSent(fn (OtpMail $mail) => $mail->hasTo($recipient));
+});
 
 test('it cleans up expired and verified otps', function () {
     $service = new OtpService();

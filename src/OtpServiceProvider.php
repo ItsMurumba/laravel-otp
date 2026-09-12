@@ -58,6 +58,12 @@ class OtpServiceProvider extends ServiceProvider
             };
 
             $service = new OtpService($generator);
+            $service->length(config('otp.length', 6))
+                ->expiresIn(config('otp.expires_in', 5))
+                ->rateLimit(
+                    config('otp.rate_limit.max_attempts', 3),
+                    config('otp.rate_limit.decay_minutes', 15)
+                );
             $service->registerChannel(new EmailChannel());
             $service->registerChannel(new SlackChannel());
             $service->registerChannel(new WhatsAppChannel());

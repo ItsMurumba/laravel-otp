@@ -39,6 +39,11 @@ class OtpService
     protected $rateLimiter;
 
     /**
+     * @var RateLimiter
+     */
+    protected $verifyRateLimiter;
+
+    /**
      * Create a new OTP service instance
      *
      * @param GeneratorInterface|null $generator
@@ -48,6 +53,7 @@ class OtpService
     {
         $this->generator = $generator ?? new NumericGenerator();
         $this->rateLimiter = $rateLimiter ?? new RateLimiter();
+        $this->verifyRateLimiter = new RateLimiter('otp:verify-rate-limit:');
         $this->registerDefaultChannels();
     }
 
@@ -107,6 +113,8 @@ class OtpService
     {
         $this->rateLimiter->maxAttempts($maxAttempts)
             ->decayMinutes($decayMinutes);
+        $this->verifyRateLimiter->maxAttempts($maxAttempts)
+            ->decayMinutes($decayMinutes);
         return $this;
     }
 
@@ -114,14 +122,16 @@ class OtpService
      * Generate and send OTP
      *
      * @param string $recipient
-     * @param string|array $channels
+     * @param string|array|null $channels Defaults to config('otp.default_channels') when omitted
      * @param array $data
      * @return string
      * @throws InvalidChannelException
      * @throws RateLimitExceededException
      */
-    public function generateAndSend(string $recipient, $channels = 'sms', array $data = []): string
+    public function generateAndSend(string $recipient, $channels = null, array $data = []): string
     {
+        $channels = $channels ?? config('otp.default_channels', 'sms');
+
         if ($this->rateLimiter->tooManyAttempts($recipient)) {
             throw new RateLimitExceededException(
                 "Too many OTP attempts. Please try again later.",
@@ -131,15 +141,15 @@ class OtpService
 
         // Generate OTP
         $otp = $this->generator->generate($this->length);
-        
+
         // Store in database
-        $otpRecord = Otp::create([
+        Otp::create([
             'identifier' => $recipient,
-            'code' => $otp,
+            'code' => $this->hash($otp),
             'channel' => is_array($channels) ? implode(',', $channels) : $channels,
             'expires_at' => Carbon::now()->addMinutes($this->expiresIn),
         ]);
-        
+
         // Send via channels
         $channels = is_array($channels) ? $channels : [$channels];
         
@@ -163,22 +173,43 @@ class OtpService
      * @param string $identifier
      * @param string $otp
      * @return bool
+     * @throws RateLimitExceededException
      */
     public function verify(string $identifier, string $otp): bool
     {
+        if ($this->verifyRateLimiter->tooManyAttempts($identifier)) {
+            throw new RateLimitExceededException(
+                "Too many OTP verification attempts. Please try again later.",
+                $this->verifyRateLimiter->remaining($identifier)
+            );
+        }
+
         $otpRecord = Otp::forIdentifier($identifier)
             ->valid()
-            ->where('code', $otp)
+            ->where('code', $this->hash($otp))
             ->first();
 
         if (!$otpRecord) {
+            $this->verifyRateLimiter->hit($identifier);
             return false;
         }
 
-        // Reset rate limit on successful verification
+        // Reset rate limits on successful verification
         $this->rateLimiter->reset($identifier);
+        $this->verifyRateLimiter->reset($identifier);
 
         return $otpRecord->markAsVerified();
+    }
+
+    /**
+     * Hash an OTP code for storage/comparison
+     *
+     * @param string $otp
+     * @return string
+     */
+    private function hash(string $otp): string
+    {
+        return hash('sha256', $otp);
     }
 
     /**

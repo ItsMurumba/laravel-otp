@@ -38,6 +38,7 @@ Do these in that order — a channel without config/tests/docs is exactly the ki
 - **Path resolution in `OtpServiceProvider`**: `__DIR__` inside `src/OtpServiceProvider.php` is `.../src`. Migrations live at `src/database/migrations`, not `<package-root>/database/migrations`. Config lives at `<package-root>/config/otp.php`, not `resources/config/otp.php`. Double-check publish/merge paths after moving any package file.
 - **Mail testing**: `Mail::fake()` + `Mail::assertSent()` only records real `Mailable` instances (see `src/Mail/OtpMail.php`) — the legacy `Mail::send($view, $data, $closure)` style is invisible to `MailFake` in modern Laravel and will silently no-op in tests.
 - **`otp` binding name**: the singleton is registered as `'otp'` (`app('otp')`), not `'laravel-otp'` or the FQCN — `app(OtpService::class)` will construct a fresh instance with no channels registered instead of resolving the configured singleton.
+- **Config values do nothing until wired**: adding a key to `config/otp.php` (or an env var to `.env.example`) doesn't make it take effect — `OtpServiceProvider::register()` has to explicitly read it and pass it into `OtpService` (see `length()`/`expiresIn()`/`rateLimit()` calls there). This bit us twice already (`SMS_API_KEY`/`SMS_API_URL`, then `length`/`expires_in`/`default_channels`/`rate_limit`) — when adding a config key, grep for `config('otp.` to confirm something actually reads it before considering the feature done.
 
 ## Conventions
 

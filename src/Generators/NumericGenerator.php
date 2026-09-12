@@ -21,13 +21,14 @@ class NumericGenerator implements GeneratorInterface
     }
 
     /**
-     * Validate if the OTP is numeric and has the correct length
+     * Validate if the OTP is numeric and has the expected length
      *
      * @param string $otp
+     * @param int $length
      * @return bool
      */
-    public function validate(string $otp): bool
+    public function validate(string $otp, int $length = 6): bool
     {
-        return ctype_digit($otp) && strlen($otp) >= 6;
+        return ctype_digit($otp) && strlen($otp) === $length;
     }
 } 
