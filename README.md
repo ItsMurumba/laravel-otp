@@ -13,8 +13,8 @@ A flexible and feature-rich Laravel package for generating and sending One-Time 
 
 ## Requirements
 
-- PHP 8.1 or higher
-- Laravel 10, 11, 12, or 13 (CI is tested against all four)
+- PHP 8.2 or higher
+- Laravel 12 or 13 (CI is tested against both). Laravel 10 and 11 aren't supported: both have an open, unpatched CVE ([CVE-2026-48019](https://packagist.org/advisories/PKSA-mdq4-51ck-6kdq)) with no fix released for those majors.
 
 ## Installation
 

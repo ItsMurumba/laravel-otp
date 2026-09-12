@@ -10,12 +10,11 @@ All notable changes to `laravel-otp` will be documented in this file.
 - Pest test suite now boots a real Laravel app via Orchestra Testbench
 - Code coverage via `composer test:coverage` and CI (`.github/workflows/tests.yml`)
 - `verify()` is now rate-limited independently from OTP generation, guarding against brute-forcing a code before it expires
-- CI now matrixes Laravel 10 and 11 as well as 12 and 13
 
 ### Changed
 
 - OTP codes are now hashed (SHA-256) before being stored; `generateAndSend()` still returns the plaintext code to the caller
-- `composer.json`'s `php`/`illuminate/support` constraints narrowed to versions that are actually CI-tested (PHP 8.1+, Laravel 10-13) — the previous range (PHP 7.1+, Laravel 5+) couldn't run this code at all (it uses PHP 8.0-only syntax)
+- `composer.json`'s `php`/`illuminate/support` constraints narrowed to versions that are actually installable and CI-tested (PHP 8.2+, Laravel 12-13). The previous range (PHP 7.1+, Laravel 5+) couldn't run this code at all (it uses PHP 8.0-only syntax); Laravel 10 and 11 were also considered but both carry an open, unpatched CVE ([CVE-2026-48019](https://packagist.org/advisories/PKSA-mdq4-51ck-6kdq), CRLF injection in the default email validation rule) with no fix released for those majors, so Composer refuses to install them and they aren't declared as supported
 
 ### Fixed
 
